@@ -1,3 +1,4 @@
+// src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
 import Login from '../views/login.vue'
 import Registration from '../views/registration.vue'
@@ -9,12 +10,10 @@ import Voting from '../components/AdminComponents/Voting.vue'
 import Profile from '../components/AdminComponents/Profile.vue'
 
 const routes = [
-
     {
         path: '/',
         name: 'Login',
         component: Login,
-
     },
     {
         path: '/registration',
@@ -25,78 +24,70 @@ const routes = [
         path: '/dashboard/',
         name: 'Dashboard',
         component: Admin,
-        beforeEnter: () => {
-            // console.log(localStorage.getItem('token'))
-
-            if (localStorage.getItem('token') == null)
-                return { name: "Login" }
-            else
-                return true
-        },
-
-        children: [{
+        meta: { requiresAuth: true },
+        children: [
+            {
                 path: 'home',
-                name: "Home",
+                name: 'Home',
                 component: DashboardComponents,
-
             },
             {
                 path: 'parties',
-                name: "Parties",
+                name: 'Parties',
                 component: Parties,
-
+                meta: { requiresAdmin: true },
             },
             {
                 path: 'candidates',
-                name: "Candidates",
+                name: 'Candidates',
                 component: Candidates,
-
+                meta: { requiresAdmin: true },
             },
             {
                 path: 'voting',
-                name: "Voting",
+                name: 'Voting',
                 component: Voting,
-                // beforeEnter: () => {
-
-                //     // alert(localStorage.getItem('admin'))
-                //     if (localStorage.getItem('admin') != null) {
-                //         // alert(localStorage.getItem('admin'))
-                //         alert(localStorage.getItem('admin'))
-                //         if (localStorage.getItem('admin')) {
-                //             // alert(localStorage.getItem('admin'));
-                //             return { name: "Home" }
-                //         } else
-                //             return true
-                //     } else {
-                //         alert(localStorage.getItem('admin'));
-                //         return { name: "Voting" }
-                //     }
-                // },
-
+                meta: { requiresVoter: true },
             },
             {
                 path: 'profile',
-                name: "Profile",
+                name: 'Profile',
                 component: Profile,
-
             }
         ]
-    },
-
-    // {
-    //     path: '/about',
-    //     name: 'About',
-    //     // route level code-splitting
-    //     // this generates a separate chunk (about.[hash].js) for this route
-    //     // which is lazy-loaded when the route is visited.
-    //     component: () =>
-    //         import ( /* webpackChunkName: "about" */ '../views/About.vue')
-    // }
+    }
 ]
 
 const router = createRouter({
     history: createWebHistory(process.env.BASE_URL),
     routes
+})
+
+// Global navigation guard for authentication and role-based access
+router.beforeEach((to, from, next) => {
+    const token = localStorage.getItem('token')
+    const isAdmin = localStorage.getItem('admin') === 'true'
+    const isVoter = localStorage.getItem('voter') === 'true'
+
+    if (to.matched.some(record => record.meta.requiresAuth)) {
+        if (!token) {
+            next({ name: 'Login' })
+            return
+        }
+    }
+    if (to.matched.some(record => record.meta.requiresAdmin)) {
+        if (!isAdmin) {
+            next({ name: 'Home' })
+            return
+        }
+    }
+    if (to.matched.some(record => record.meta.requiresVoter)) {
+        if (!isVoter) {
+            next({ name: 'Home' })
+            return
+        }
+    }
+    next()
 })
 
 export default router

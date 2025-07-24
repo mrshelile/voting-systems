@@ -1,3 +1,4 @@
+<!-- /src/views/App.vue -->
 <template>
   <div id="">
     <!-- <router-link to="/">Home</router-link> |

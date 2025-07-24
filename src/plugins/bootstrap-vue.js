@@ -1,3 +1,4 @@
+//src/plugins/bootstrap-vue.js
 import Vue from 'vue'
 
 import BootstrapVue from 'bootstrap-vue'

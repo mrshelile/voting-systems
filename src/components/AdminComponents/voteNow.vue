@@ -1,3 +1,4 @@
+<!-- /src/AdminComponents/voteNow.vue -->
 <template>
     <div>dssdsdsd</div>
 </template>

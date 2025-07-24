@@ -1,8 +1,11 @@
+<!-- src/views/Admin.vue -->
 <template>
- <div>
-     <Sidenav/>
-     <!-- This is admin dahoard -->
- </div> 
+  <div class="admin-layout">
+    <Sidenav />
+    <main class="admin-content">
+      <router-view />
+    </main>
+  </div>
 </template>
 
 <script>
@@ -15,6 +18,15 @@ export default {
   }
 }
 </script>
-<style scoped>
 
+<style scoped>
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+}
+.admin-content {
+  flex: 1;
+  padding: 24px;
+  background: #f9f9f9;
+}
 </style>

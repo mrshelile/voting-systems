@@ -1,3 +1,4 @@
+<!-- /src/AdminComponents/Parties.vue -->
 <template>
 <div class="container">
   <div class="row">

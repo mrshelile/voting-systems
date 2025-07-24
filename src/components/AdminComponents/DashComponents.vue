@@ -1,3 +1,4 @@
+<!-- /src/AdminComponents/DashboardComponents.vue -->
 <template>
   <div class="container">
     <div class="row">

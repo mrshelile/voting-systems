@@ -1,3 +1,4 @@
+<!-- /src/AdminComponents/Candidates.vue -->
 <template>
   <div class="container">
     <div class="row">

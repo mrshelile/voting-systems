@@ -1,3 +1,4 @@
+<!-- /src/AdminComponents/Profile.vue -->
 <template>
   <div>
       This is Profile page

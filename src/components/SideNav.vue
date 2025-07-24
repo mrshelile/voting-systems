@@ -16,55 +16,26 @@
                         <router-link :to="{name:'Parties'}" class="text-success nav-link px-0 align-middle">
                             <i class="fs-4 bi-people"></i> <span class="ms-1 d-none d-sm-inline">Parties</span> 
                         </router-link>
-                        <!-- <ul class="collapse show nav flex-column ms-1" id="submenu1" data-bs-parent="#menu">
-                            <li class="w-100">
-                                <a href="#" class="nav-link px-0 text-success"> <span class="text-success d-none d-sm-inline">Item</span> 1 </a>
-                            </li>
-                            <li>
-                                <a href="#" class="nav-link px-0 text-success"> <span class="d-none text-success d-sm-inline">Item</span> 2 </a>
-                            </li>
-                        </ul> -->
                     </li>
                     <li v-if="isAdmin" @mouseout="active3=false" @mouseover="active3=true" :class="active3?'activeDash':''">
                         <router-link :to="{name:'Candidates'}" class="nav-link px-0 align-middle text-success">
                             <i class="fs-4 bi-people"></i> <span class="ms-1 d-none d-sm-inline">Candidates</span>
                         </router-link>
                     </li>
-
-                    <!-- <li>
-                        <a href="#submenu3" data-bs-toggle="collapse" class="text-success nav-link px-0 align-middle">
-                            <i class="fs-4 bi-grid "></i> <span class="ms-1 d-none d-sm-inline">Products</span> </a>
-                            <ul class="collapse nav flex-column ms-1 " id="submenu3" data-bs-parent="#menu">
-                            <li class="w-100">
-                                <a href="#" class="nav-link px-0 text-success"> <span class="d-none d-sm-inline">Product</span> 1</a>
-                            </li>
-                            <li>
-                                <a href="#" class="nav-link px-0 text-success"> <span class="d-none d-sm-inline">Product</span> 2</a>
-                            </li>
-                            <li>
-                                <a href="#" class="nav-link px-0 text-success"> <span class="d-none d-sm-inline">Product</span> 3</a>
-                            </li>
-                            <li>
-                                <a href="#" class="nav-link px-0 text-success"> <span class="d-none d-sm-inline">Product</span> 4</a>
-                            </li>
-                        </ul>
-                    </li> -->
                     <li v-if="!isAdmin" @mouseout="active4=false" @mouseover="active4=true" :class="active4?'activeDash':''">
                         <router-link :to="{name:'Voting'}" class="nav-link px-0 align-middle text-success">
-                            <i class="fs-4 bi-check2-square"></i> <span class="ms-1 d-none d-sm-inline">Voiting Section</span> 
+                            <i class="fs-4 bi-check2-square"></i> <span class="ms-1 d-none d-sm-inline">Voting Section</span> 
                         </router-link>
                     </li>
                 </ul>
                 <hr>
                 <div class="dropdown pb-4">
                     <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
-                        <!-- <img src="https://github.com/mdo.png" alt="hugenerd" width="30" height="30" class="rounded-circle"> -->
-                        <img class="icon_img rounded-circle"  alt="hugenerd" width="30" height="30"  src="../../src/assets/profile.svg"/>
+                        <img class="icon_img rounded-circle"  alt="profile" width="30" height="30"  src="../../src/assets/profile.svg"/>
                         <span class="d-none d-sm-inline mx-1">{{name}}</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
                         <li>
-                
                             <hr class="dropdown-divider">
                         </li>
                         <li><a class="dropdown-item" @click="signOut">Sign out</a></li>
@@ -79,51 +50,42 @@
 </div>
 </template>
 
-<script>
-import axios from 'axios';
-export default {
-  name:"Sidenav",
-  data(){
-      return{
-      active1:false,
-      active2:false,
-      active3:false,
-      active4:false,
-      isAdmin:false,
-      name:''
-      }
-  },
-  methods:{
-    signOut(){
-        
-        localStorage.clear()
-        this.$router.push({name:'Login'})
-    }
-  },
-  async mounted(){
-  
-  try{
-  const userRes  =await axios.get('users/'+localStorage.getItem("id")+"?populate=*");
-  this.isAdmin=userRes.data.is_admin;
+<script setup>
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
 
-//   console.log(userRes.data.voter.full_names);
-//   let voterRes=''
-  if(!this.isAdmin)
-     this.name =userRes.data.voter.full_names
-  else
-    this.name= userRes.data.email   
-//   console.log(voterRes.data.data)
-  }
-  catch(err){
-    console.log(err);
-  }
- }
+const active1 = ref(false)
+const active2 = ref(false)
+const active3 = ref(false)
+const active4 = ref(false)
+const isAdmin = ref(false)
+const name = ref('')
+const router = useRouter()
+
+function signOut() {
+    localStorage.clear()
+    router.push({ name: 'Login' })
 }
+
+onMounted(async () => {
+    try {
+        const userId = localStorage.getItem("id")
+        const userRes = await axios.get('users/' + userId + "?populate=*")
+        isAdmin.value = userRes.data.is_admin
+        if (!isAdmin.value) {
+            name.value = userRes.data.voter.full_names
+        } else {
+            name.value = userRes.data.email
+        }
+    } catch (err) {
+        console.log(err)
+    }
+})
 </script>
 
 <style scoped>
 .activeDash{background-color: white;border-radius: 10%; width: 100%;}
 .gradient-background{background: rgb(0,10,36);
 background: linear-gradient(90deg, rgba(0,10,36,1) 0%, rgba(40,24,27,0.7791491596638656) 32%, rgba(9,121,60,0.7063200280112045) 76%, rgba(5,18,28,0.87718837535014) 100%);}
-
 </style>

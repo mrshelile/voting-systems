@@ -1,91 +1,114 @@
 <template>
-<div class="registration-form gradient-background">
-        <form @submit.prevent="handleSumit">
+    <div class="registration-form gradient-background">
+        <form @submit.prevent="handleSubmit">
             <div class="form-icon">
-                <!-- <span><i class="icon icon-user"></i></span> -->
-                <img class="icon_img" src="../../src/assets/security.svg"/>
+                <img class="icon_img" src="../../src/assets/security.svg" />
             </div>
             <div class="form-group">
-                <input type="text" class="form-control item" v-model="email"  placeholder="email" required>
+                <input
+                    type="text"
+                    class="form-control item"
+                    v-model="email"
+                    placeholder="Email"
+                    required
+                />
             </div>
-
             <div class="form-group">
-                <input type="password" v-model="password" class="form-control item" @keydown="onchange"  placeholder="Password" required>
+                <input
+                    type="password"
+                    v-model="password"
+                    class="form-control item"
+                    @input="validatePasswords"
+                    placeholder="Password"
+                    required
+                />
             </div>
             <div class="form-group">
                 <div class="row">
-                <input type="password" v-model="rePassword" class="form-control item" @keyup="onchange" placeholder="Confirm Password" required>
+                    <input
+                        type="password"
+                        v-model="rePassword"
+                        class="form-control item"
+                        @input="validatePasswords"
+                        placeholder="Confirm Password"
+                        required
+                    />
                 </div>
-                <div class="row text-danger">{{Error}}</div>
+                <div class="row text-danger">{{ error }}</div>
             </div>
             <div class="form-group">
-                <button type="submit" class="btn gradient-btn create-account">Create Account</button>
+                <button type="submit" class="btn gradient-btn create-account">
+                    Create Account
+                </button>
             </div>
         </form>
     </div>
 </template>
 
-<script>
-import axios from 'axios';
-export default {
-  name:"Registration",
-  data() {
-    return {
-      email:'',
-      password:'',
-      rePassword:'',
-      Error:""
-    }
-  },
+<script setup>
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
 
-  methods:{
-    onchange(){
-    
-    if(this.password!=this.rePassword) 
-        this.Error='Passwords do not Match'
-    else
-     this.Error=''
-    //  alert(this.Error)
-    },
-    async handleSumit(){
-     if(this.password==this.rePassword)   
-      {  let data ={
-            "username":this.email,
-            "password":this.password,
-            "is_admin":true,
-            "email":this.email
+const email = ref('')
+const password = ref('')
+const rePassword = ref('')
+const error = ref('')
+const router = useRouter()
+
+function validatePasswords() {
+    error.value =
+        password.value && rePassword.value && password.value !== rePassword.value
+            ? 'Passwords do not match'
+            : ''
+}
+
+async function handleSubmit() {
+    validatePasswords()
+    if (!error.value) {
+        const payload = {
+            username: email.value,
+            password: password.value,
+            is_admin: false,
+            email: email.value,
+        }
+        try {
+            const userRes = await axios.post('/auth/local/register', payload, {
+                headers: { 'Content-Type': 'application/json' },
+            })
+            if (userRes.status === 200) {
+                router.push({ name: 'Login' })
             }
-            
-        data = JSON.stringify(data)
-        console.log(data)
-        const userRes = await axios.post("/auth/local/register",data,{
-            headers: {
-                // Overwrite Axios's automatically set Content-Type
-                'Content-Type': 'application/json'
-                }
-        })   
-        if(userRes.status==200){
-            this.$router.push({name:'Login'})
+        } catch (e) {
+            error.value = 'Registration failed'
         }
-        }
-
     }
-  }
 }
 </script>
 
 <style scoped>
-body{
+/* ...existing styles unchanged... */
+body {
     background-color: #dee9ff;
 }
-.gradient-background{background: rgb(0,10,36);
-background: linear-gradient(90deg, rgba(0,10,36,1) 0%, rgba(40,24,27,0.7791491596638656) 32%, rgba(9,121,60,0.7063200280112045) 76%, rgba(5,18,28,0.87718837535014) 100%);}
-
-.registration-form{
-	padding: 50px 0;
+.gradient-background {
+    background: rgb(0, 10, 36);
+    background: linear-gradient(
+        90deg,
+        rgba(0, 10, 36, 1) 0%,
+        rgba(40, 24, 27, 0.7791491596638656) 32%,
+        rgba(9, 121, 60, 0.7063200280112045) 76%,
+        rgba(5, 18, 28, 0.87718837535014) 100%
+    );
 }
-.icon_img{width: 100%;}
-.registration-form form{
+
+.registration-form {
+    padding: 50px 0;
+}
+.icon_img {
+    width: 100%;
+}
+.registration-form form {
     background-color: #fff;
     max-width: 600px;
     margin: auto;
@@ -95,8 +118,8 @@ background: linear-gradient(90deg, rgba(0,10,36,1) 0%, rgba(40,24,27,0.779149159
     box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.075);
 }
 
-.registration-form .form-icon{
-	text-align: center;
+.registration-form .form-icon {
+    text-align: center;
 
     border-radius: 50%;
     font-size: 40px;
@@ -108,13 +131,13 @@ background: linear-gradient(90deg, rgba(0,10,36,1) 0%, rgba(40,24,27,0.779149159
     line-height: 100px;
 }
 
-.registration-form .item{
-	border-radius: 20px;
+.registration-form .item {
+    border-radius: 20px;
     margin-bottom: 25px;
     padding: 10px 20px;
 }
 
-.registration-form .create-account{
+.registration-form .create-account {
     border-radius: 30px;
     padding: 10px 20px;
     font-size: 18px;
@@ -125,7 +148,7 @@ background: linear-gradient(90deg, rgba(0,10,36,1) 0%, rgba(40,24,27,0.779149159
     margin-top: 20px;
 }
 
-.registration-form .social-media{
+.registration-form .social-media {
     max-width: 600px;
     background-color: #fff;
     margin: auto;
@@ -138,12 +161,12 @@ background: linear-gradient(90deg, rgba(0,10,36,1) 0%, rgba(40,24,27,0.779149159
     box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.075);
 }
 
-.registration-form .social-icons{
+.registration-form .social-icons {
     margin-top: 30px;
     margin-bottom: 16px;
 }
 
-.registration-form .social-icons a{
+.registration-form .social-icons a {
     font-size: 23px;
     margin: 0 3px;
     color: #5691ff;
@@ -157,21 +180,24 @@ background: linear-gradient(90deg, rgba(0,10,36,1) 0%, rgba(40,24,27,0.779149159
     line-height: 45px;
 }
 
-
-
-.gradient-btn{background: rgb(36,11,0);
-background: linear-gradient(90deg, rgba(36,11,0,1) 19%, rgba(5,18,28,0.9304096638655462) 81%);}
+.gradient-btn {
+    background: rgb(36, 11, 0);
+    background: linear-gradient(
+        90deg,
+        rgba(36, 11, 0, 1) 19%,
+        rgba(5, 18, 28, 0.9304096638655462) 81%
+    );
+}
 @media (max-width: 576px) {
-    .registration-form form{
+    .registration-form form {
         padding: 50px 20px;
     }
 
-    .registration-form .form-icon{
+    .registration-form .form-icon {
         width: 70px;
         height: 70px;
         font-size: 30px;
         line-height: 70px;
     }
-
 }
 </style>

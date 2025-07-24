@@ -80,7 +80,7 @@ export default {
 				if (response.status === 200 && localStorage.getItem("token")) {
 					this.error = "";
 					if (response.data.user.is_admin) {
-						this.$router.push({ name: 'AdminDashboard' });
+						this.$router.push({ name: 'AdminDashboard' }); // Ensure 'AdminDashboard' route exists in your router/index.js
 					} else {
 						this.$router.push({ name: 'Home' });
 					}

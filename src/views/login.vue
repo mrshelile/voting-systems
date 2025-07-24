@@ -1,49 +1,50 @@
-<!-- src/views/login.vue -->
 <template>
 	<div class="container-fluid">
-		<div class="row main-content bg-success text-center">
-			<div class="col-md-4 text-center company__info gradient-background">
-				<span class="company__logo"><h2><span class="fa fa-android"></span></h2></span>
-				<h4 class="company_title">Please login</h4>
-			</div>
-			<div class="col-md-8 col-xs-12 col-sm-12 login_form">
-				<div class="container-fluid">
-					<div class="row mt-3">
-						<form @submit.prevent="login" class="form-group needs-validation" novalidate>
-							<div class="row mb-3">
-								<input
-									type="text"
-									v-model="id_number"
-									id="username"
-									class="form__input form-control"
-									placeholder="National ID Number"
-									required
-								>
-							</div>
-							<div class="row mb-3">
-								<input
-									type="password"
-									v-model="password"
-									id="password"
-									class="form__input form-control"
-									placeholder="Password"
-									required
-								>
-							</div>
-							<div class="row mb-3">
-								<div class="w-100 text-end">
+		<div class="row justify-content-center align-items-center min-vh-100">
+			<div class="col-lg-6 col-md-8 col-12">
+				<div class="card shadow-lg rounded-4 overflow-hidden">
+					<div class="row g-0">
+						<div class="col-md-5 d-none d-md-flex flex-column justify-content-center align-items-center gradient-background text-white p-4">
+							<h2><i class="fa fa-android"></i></h2>
+							<h4 class="mt-3">Please login</h4>
+						</div>
+						<div class="col-md-7 col-12 bg-white p-4">
+							<form @submit.prevent="login" novalidate>
+								<div class="mb-3">
+									<label for="idNumber" class="form-label">National ID Number</label>
+									<input
+										type="text"
+										id="idNumber"
+										v-model="idNumber"
+										class="form-control"
+										placeholder="Enter National ID Number"
+										required
+									>
+								</div>
+								<div class="mb-3">
+									<label for="password" class="form-label">Password</label>
+									<input
+										type="password"
+										id="password"
+										v-model="password"
+										class="form-control"
+										placeholder="Enter Password"
+										required
+									>
+								</div>
+								<div class="mb-3 text-end">
 									<router-link to="/registration" class="text-decoration-none text-success">
 										New user? Register here
 									</router-link>
 								</div>
-							</div>
-							<div class="row mb-2">
-								<span v-if="error" class="text-danger w-100">{{ error }}</span>
-							</div>
-							<div class="row">
-								<input type="submit" value="Submit" class="btn gradient-background text-white">
-							</div>
-						</form>
+								<div class="mb-2">
+									<span v-if="error" class="text-danger">{{ error }}</span>
+								</div>
+								<div class="d-grid">
+									<button type="submit" class="btn gradient-background text-white fw-bold">Submit</button>
+								</div>
+							</form>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -51,126 +52,66 @@
 	</div>
 </template>
 
-<script>
+<script setup>
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 import axios from 'axios';
-export default {
-	name: "Login",
-	data() {
-		return {
-			id_number: "",
-			password: "",
-			error: ""
-		};
-	},
-	methods: {
-		async login() {
-			if (!this.id_number || !this.password) {
-				this.error = "Please enter both National ID Number and Password.";
-				return;
-			}
-			try {
-				const response = await axios.post('auth/local', {
-					identifier: this.id_number,
-					password: this.password
-				});
-				localStorage.setItem("token", response.data.jwt);
-				localStorage.setItem("id", response.data.user.id);
-				localStorage.setItem("admin", response.data.user.is_admin);
 
-				if (response.status === 200 && localStorage.getItem("token")) {
-					this.error = "";
-					if (response.data.user.is_admin) {
-						this.$router.push({ name: 'AdminDashboard' }); // Ensure 'AdminDashboard' route exists in your router/index.js
-					} else {
-						this.$router.push({ name: 'Home' });
-					}
-				} else {
-					this.error = "Invalid login credentials";
-				}
-			} catch (error) {
-				this.error = "Invalid login credentials";
-			}
+const idNumber = ref('');
+const password = ref('');
+const error = ref('');
+const router = useRouter();
+
+const login = async () => {
+	error.value = '';
+	if (!idNumber.value || !password.value) {
+		error.value = 'Please enter both National ID Number and Password.';
+		return;
+	}
+	try {
+		const res = await axios.post('/auth/local', {
+			identifier: idNumber.value,
+			password: password.value
+		});
+		localStorage.setItem('token', res.data.jwt);
+		localStorage.setItem('id', res.data.user.id);
+
+		const userRes = await axios.get('/api/users/me?populate=voter', {
+			headers: { Authorization: `Bearer ${res.data.jwt}` }
+		});
+
+		const isAdmin = userRes.data.isAdmin || userRes.data.is_admin || (userRes.data.role && userRes.data.role.name === 'Admin');
+		localStorage.setItem('admin', isAdmin);
+
+		if (isAdmin) {
+			router.push('/admin-dashboard');
+		} else if (userRes.data.voter) {
+			router.push('/voter-dashboard');
+		} else {
+			error.value = 'User role not found.';
 		}
+	} catch (e) {
+		error.value = 'Invalid login credentials';
 	}
 };
 </script>
 
 <style scoped>
-.main-content {
-	width: 50%;
-	border-radius: 20px;
-	box-shadow: 0 5px 5px rgba(0,0,0,.4);
-	margin: 5em auto;
-	display: flex;
-}
 .gradient-background {
-	background: rgb(0,10,36);
 	background: linear-gradient(90deg, rgba(0,10,36,1) 0%, rgba(40,24,27,0.779) 32%, rgba(9,121,60,0.706) 76%, rgba(5,18,28,0.877) 100%);
 }
-.company__info {
-	border-top-left-radius: 20px;
-	border-bottom-left-radius: 20px;
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	color: #fff;
+.card {
+	border-radius: 1.5rem;
 }
 .fa-android {
 	font-size: 3em;
 }
-@media screen and (max-width: 640px) {
-	.main-content { width: 90%; }
-	.company__info { display: none; }
-	.login_form {
-		border-top-left-radius: 20px;
-		border-bottom-left-radius: 20px;
+@media (max-width: 767.98px) {
+	.gradient-background {
+		display: none !important;
 	}
-}
-@media screen and (min-width: 642px) and (max-width:800px) {
-	.main-content { width: 70%; }
-}
-.row > h2 {
-	color: #008080;
-}
-.login_form {
-	background-color: #fff;
-	border-top-right-radius: 20px;
-	border-bottom-right-radius: 20px;
-	border-top: 1px solid #ccc;
-	border-right: 1px solid #ccc;
-}
-form {
-	padding: 0 2em;
-}
-.form__input {
-	width: 100%;
-	border: 0px solid transparent;
-	border-radius: 0;
-	border-bottom: 1px solid #aaa;
-	padding: 1em .5em .5em;
-	padding-left: 2em;
-	outline: none;
-	margin: 1.5em auto;
-	transition: all .5s ease;
-}
-.form__input:focus {
-	border-bottom-color: #008080;
-	box-shadow: 0 0 5px rgba(0,80,80,.4);
-	border-radius: 4px;
-}
-.btn {
-	transition: all .5s ease;
-	width: 70%;
-	border-radius: 30px;
-	color: #008080;
-	font-weight: 600;
-	background-color: #fff;
-	border: 1px solid #008080;
-	margin-top: 1.5em;
-	margin-bottom: 1em;
-}
-.btn:hover, .btn:focus {
-	background-color: #008080;
-	color: #fff;
+	.card {
+		border-radius: 1.5rem;
+	}
 }
 </style>

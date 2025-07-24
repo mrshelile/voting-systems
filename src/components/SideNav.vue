@@ -7,22 +7,13 @@
                     <span class="fs-5 d-none d-sm-inline">Voting Systems</span>
                 </a>
                 <ul class="nav nav-pills flex-column mb-sm-auto mb-0 align-items-center align-items-sm-start" id="menu">
-                    <li class="nav-item shadow-lg ml-2"
-                        :class="isActive('Home') ? 'activeDash' : ''"
-                        @mouseover="hovered = 'Home'"
+                    <li v-if="isAdmin" class="nav-item shadow-lg ml-2"
+                        :class="isActive('Dashboard') ? 'activeDash' : ''"
+                        @mouseover="hovered = 'Dashboard'"
                         @mouseout="hovered = ''">
-                        <router-link :to="{name:'Home'}" class="nav-link text-success align-middle px-0">
+                        <router-link :to="{name:'Dashboard'}" class="nav-link text-success align-middle px-0">
                             <i class="fs-4 bi-speedometer2"></i>
                             <span class="ms-1 d-none d-sm-inline">Dashboard</span>
-                        </router-link>
-                    </li>
-                    <li v-if="isAdmin" class="shadow-lg ml-2"
-                        :class="isActive('Parties') ? 'activeDash' : ''"
-                        @mouseover="hovered = 'Parties'"
-                        @mouseout="hovered = ''">
-                        <router-link :to="{name:'Parties'}" class="nav-link text-success align-middle px-0">
-                            <i class="fs-4 bi-people"></i>
-                            <span class="ms-1 d-none d-sm-inline">Parties</span>
                         </router-link>
                     </li>
                     <li v-if="isAdmin" class="shadow-lg ml-2"
@@ -34,13 +25,31 @@
                             <span class="ms-1 d-none d-sm-inline">Candidates</span>
                         </router-link>
                     </li>
-                    <li v-if="!isAdmin" class="shadow-lg ml-2"
-                        :class="isActive('Voting') ? 'activeDash' : ''"
-                        @mouseover="hovered = 'Voting'"
+                    <li v-if="isAdmin" class="shadow-lg ml-2"
+                        :class="isActive('Parties') ? 'activeDash' : ''"
+                        @mouseover="hovered = 'Parties'"
                         @mouseout="hovered = ''">
-                        <router-link :to="{name:'Voting'}" class="nav-link text-success align-middle px-0">
+                        <router-link :to="{name:'Parties'}" class="nav-link text-success align-middle px-0">
+                            <i class="fs-4 bi-people"></i>
+                            <span class="ms-1 d-none d-sm-inline">Parties</span>
+                        </router-link>
+                    </li>
+                    <li v-if="isVoter" class="shadow-lg ml-2"
+                        :class="isActive('Vote') ? 'activeDash' : ''"
+                        @mouseover="hovered = 'Vote'"
+                        @mouseout="hovered = ''">
+                        <router-link :to="{name:'Vote'}" class="nav-link text-success align-middle px-0">
                             <i class="fs-4 bi-check2-square"></i>
-                            <span class="ms-1 d-none d-sm-inline">Voting Section</span>
+                            <span class="ms-1 d-none d-sm-inline">Vote</span>
+                        </router-link>
+                    </li>
+                    <li v-if="isVoter" class="shadow-lg ml-2"
+                        :class="isActive('Profile') ? 'activeDash' : ''"
+                        @mouseover="hovered = 'Profile'"
+                        @mouseout="hovered = ''">
+                        <router-link :to="{name:'Profile'}" class="nav-link text-success align-middle px-0">
+                            <i class="fs-4 bi-person"></i>
+                            <span class="ms-1 d-none d-sm-inline">Profile</span>
                         </router-link>
                     </li>
                 </ul>
@@ -48,7 +57,7 @@
                 <div class="dropdown pb-4">
                     <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
                         <img class="icon_img rounded-circle" alt="profile" width="30" height="30" src="../../src/assets/profile.svg"/>
-                        <span class="d-none d-sm-inline mx-1">{{ name }}</span>
+                        <span class="d-none d-sm-inline mx-1">{{ username }}</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
                         <li>
@@ -73,7 +82,8 @@ import axios from 'axios'
 
 const hovered = ref('')
 const isAdmin = ref(false)
-const name = ref('')
+const isVoter = ref(false)
+const username = ref('')
 const router = useRouter()
 const route = useRoute()
 
@@ -88,10 +98,14 @@ function isActive(navName) {
 
 onMounted(async () => {
     try {
-        const userId = localStorage.getItem("id")
-        const userRes = await axios.get('users/' + userId + "?populate=*")
-        isAdmin.value = userRes.data.is_admin
-        name.value = isAdmin.value ? userRes.data.email : userRes.data.voter.full_names
+        const res = await axios.get('/api/users/me?populate=voter')
+        if (res.data.voter) {
+            isVoter.value = true
+            username.value = res.data.voter.full_names
+        } else {
+            isAdmin.value = true
+            username.value = res.data.email
+        }
     } catch (err) {
         console.log(err)
     }
